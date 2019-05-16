@@ -1,4 +1,4 @@
-const { src, dest } = require('gulp');
+const { src, dest, series, task } = require('gulp');
 const ts = require('gulp-typescript');
 const nodemon = require('gulp-nodemon');
 const del = require('del');
@@ -8,10 +8,15 @@ const tsProject = ts.createProject('tsconfig.json');
 
 const clean = done => del(buildFolder).then(() => done());
 
+// gulp.task is needed for the outdated nodemon "tasks" array to work
+task('clean', clean);
+
 const build = () => 
   src('src/**/*.ts')
     .pipe(tsProject())
     .pipe(dest(buildFolder));
+
+task('build', series(clean, build));
 
 const watch = done =>
   nodemon({
@@ -21,9 +26,5 @@ const watch = done =>
     tasks: ['build'],
     done
   })
-    
-module.exports = {
-  clean,
-  build,
-  watch
-}
+
+task('watch', series(clean, build, watch));
